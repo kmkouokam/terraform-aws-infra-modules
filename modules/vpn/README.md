@@ -1,98 +1,62 @@
-# 🌐 AWS Client VPN Terraform Module
+# VPN Submodule for AWS Infrastructure
 
-This Terraform module provisions an **AWS Client VPN Endpoint** and associates it with public and private subnets across availability zones. It uses certificate-based authentication and ACM for secure access.
+This is a reusable **Terraform submodule** used within the `kmkouokam/infra-modules/aws` module. It provisions an **AWS Client VPN Endpoint** with certificate-based authentication, subnet associations, and routing configuration.
 
----
+## ❗ Note
 
-## 🚀 Features
+Although this module is designed for internal use within `kmkouokam/infra-modules/aws`, it can be reused independently if desired. However, **direct use is recommended only if you understand its dependencies and input requirements**.
 
-- Creates a **Client VPN Endpoint**
-- Uses **ACM-issued certificates** for mutual TLS (mTLS) authentication
-- Associates VPN endpoint with **public and private subnets**
-- Configures **routing** to allow VPN traffic through the subnets
-- Adds **authorization rules** to permit access to VPC networks
+## 📦 What it Does
 
----
+- Provisions an AWS Client VPN Endpoint
+- Uses ACM-issued TLS certificates
+- Associates public and private subnets
+- Configures routing for VPN users
+- Authorizes full access to the VPC CIDR block
 
-## 📁 Resources Created
-
-| Resource Type                                 | Description                                 |
-|----------------------------------------------|---------------------------------------------|
-| `aws_ec2_client_vpn_endpoint`                | Creates the VPN server endpoint             |
-| `aws_ec2_client_vpn_network_association`     | Associates the VPN with selected subnets    |
-| `aws_ec2_client_vpn_route`                   | Routes VPN traffic to VPC subnets           |
-| `aws_ec2_client_vpn_authorization_rule`      | Grants access to VPC CIDR block             |
-| `data.aws_acm_certificate`                   | Retrieves ACM certificate for VPN           |
-| `data.aws_subnet`                            | Looks up subnet details                     |
-
----
-
-## 🔧 Input Variables
-
-| Name                    | Description                                                  | Type        | Required |
-|-------------------------|--------------------------------------------------------------|-------------|----------|
-| `env`                   | Environment name (e.g., dev, prod)                            | `string`    | ✅ Yes   |
-| `vpc_id`                | VPC ID to associate with the VPN endpoint                    | `string`    | ✅ Yes   |
-| `vpc_cidr_block`        | CIDR block of the VPC to authorize in VPN                    | `string`    | ✅ Yes   |
-| `public_subnet_ids`     | List of public subnet IDs                                    | `list(string)` | ✅ Yes |
-| `private_subnet_ids`    | List of private subnet IDs                                   | `list(string)` | ✅ Yes |
-| `vpn_aws_security_group`| Security group ID for the VPN endpoint                       | `string`    | ✅ Yes   |
-| `tags`                  | Key-value tags to apply to resources                         | `map(string)` | No     |
-
----
-
-## 🔐 Certificate Authentication
-
-This module uses **ACM-issued TLS certificates** for:
-- The **server certificate** (`*.devopsguru.world`)
-- The **root certificate chain** for client authentication
-
-Make sure:
-- The ACM certificate is already **issued and validated**
-- You manage client certificates appropriately
-
----
-
-## 🗺️ Routing
-
-The module sets up:
-- One **VPN route per unique subnet** (both public and private)
-- Default route (`0.0.0.0/0`) targeting each associated subnet
-
----
-
-## ✅ Example Usage
+## 🔧 Usage Example
 
 ```hcl
 module "vpn" {
-  source                = "github.com/kmkouokam/infra-modules//aws/modules/vpn"
-  env                   = var.env
-  vpc_id                = "vpc-1234567890abcdef"
-  vpc_cidr_block        = "10.0.0.0/16"
-  public_subnet_ids     = ["subnet-abc1", "subnet-abc2"]
-  private_subnet_ids    = ["subnet-def1", "subnet-def2"]
-  vpn_aws_security_group = "sg-0abc12345"
+  source                 = "github.com/kmkouokam/infra-modules//aws/modules/vpn"
+  env                    = "dev"
+  vpc_id                 = "vpc-xxxxxxxx"
+  vpc_cidr_block         = "10.0.0.0/16"
+  public_subnet_ids      = ["subnet-abc123", "subnet-def456"]
+  private_subnet_ids     = ["subnet-ghi789", "subnet-jkl012"]
+  vpn_aws_security_group = "sg-xxxxxxx"
   tags = {
-    Project = "VPN Access"
-    Owner   = "prod-team"
+    Environment = "dev"
+    Owner       = "devops"
   }
 }
 ```
 
----
+## 📥 Inputs
 
-## ⚠️ Notes
+See `variables.tf` for all configurable options, including:
 
-- Ensure the ACM certificate exists and is in **Issued** status.
-- Only **one subnet per AZ** is associated with the VPN (as required by AWS).
-- Route authorization is set to allow all groups. You may adjust this for fine-grained control.
+- `env`
+- `vpc_id`
+- `vpc_cidr_block`
+- `public_subnet_ids`
+- `private_subnet_ids`
+- `vpn_aws_security_group`
+- `tags`
 
----
+## 📤 Outputs
+
+See `outputs.tf` (if defined) for any exposed outputs such as:
+
+- `vpn_endpoint_id`
+ 
 
 ## 📄 License
 
-This project is licensed under the **Mozilla Public License 2.0**.
+This module is licensed under the **Mozilla Public License 2.0**.
 
----
+## 📚 Learn More
 
+- [Terraform Registry: Module Structure](https://developer.hashicorp.com/terraform/registry/modules/publishing#standard-module-structure)
+- [AWS Client VPN Documentation](https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/what-is.html)
  

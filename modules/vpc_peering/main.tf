@@ -10,17 +10,6 @@ resource "aws_vpc_peering_connection" "peer" {
   }
 }
 
-# # Accepter's side of the connection.
-# resource "aws_vpc_peering_connection_accepter" "peer" {
-#   #   peer_region               = var.peer_aws_region
-#   vpc_peering_connection_id = aws_vpc_peering_connection.peer.id
-#   auto_accept               = true
-
-#   tags = {
-#     Side = "Accepter"
-#   }
-# }
-
 # Requester side route additions (public + private)
 resource "aws_route" "requester_public_routes" {
   for_each = toset(var.public_route_table_ids)

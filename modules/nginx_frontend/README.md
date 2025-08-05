@@ -84,7 +84,7 @@ This Terraform module provisions a scalable, high-availability Nginx frontend ar
 
 ```hcl
 module "nginx_frontend" {
-  source                    = "./modules/nginx_frontend"
+  source                    = "./modules/nginx_frontend"   #update as needed
   env                       = "dev"
   vpc_id                    = "vpc-xxxxxxxx"
   public_subnet_ids         = aws_subnet.public_subnets[*].id

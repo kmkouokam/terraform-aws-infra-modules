@@ -54,7 +54,7 @@ Outputs can include:
 
 ```hcl
 module "cloudwatch_monitoring" {
-  source                  = "./modules/cloudwatch"
+  source                  = "./modules/cloudwatch"  #update this as needed
   env                     = "your-env"
   aws_region              = "us-east-1"
   lambda_function_name    = "ec2-cleanup-function"

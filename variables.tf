@@ -151,12 +151,6 @@ variable "notification_emails" {
 }
 
 
-
-
-
-
-
-
 variable "description" {
   type        = string
   default     = "Managed secret"
@@ -193,17 +187,11 @@ variable "forntend_instance_type" {
 }
 
 
-
-
-
-
 variable "bastion_instance_type" {
   description = "Instance type for the bastion host"
   type        = string
   default     = "t2.micro"
 }
-
-
 
 
 variable "key_name" {
@@ -217,8 +205,6 @@ variable "allowed_ssh_cidrs" {
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }
-
-
 
 
 variable "tags" {
@@ -248,11 +234,6 @@ variable "max_size" {
   description = "The maximum number of instances in the ASG"
   type        = number
 }
-
-
-
-
-
 
 
 variable "jenkins_instance_type" {

@@ -27,13 +27,6 @@ output "jenkins_security_group" {
 }
 
 
-
-
-
-
-
-
-
 output "kms_key_id" {
   description = "KMS key ID for Secrets Manager"
   value       = module.kms.secrets_manager_kms_key_id

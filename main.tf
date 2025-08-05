@@ -212,10 +212,11 @@ resource "aws_route_table_association" "peer_private_routes" {
 
 
 
+## modules section
+# This section is uses to call all child modules.
 
 
-
-## modeles/iam_roles/
+## modules/iam_roles/
 module "iam_roles" {
   source = "./modules/iam_roles"
 
@@ -237,8 +238,6 @@ module "secrets_manager" {
   env         = var.env
 
 }
-
-
 
 
 # RDS Security Group in root
@@ -313,45 +312,6 @@ module "rds_mysql" {
   ]
 }
 
-
-
-
-
-
-
-# Call the RDS MySQL module 1 az deployment
-# module "rds_mysql" {
-#   source         = "./modules/rds-mysql"
-#   env            = var.env
-#   db_name        = "accounts"
-#   db_username    = "admin"
-#   db_password    = module.secrets_manager.password
-#   instance_class = "db.t3.micro"
-#   engine_version = "8.0"
-#   storage_size   = 20
-#   multi_az       = true
-#   # db_subnet_group_name = "${var.env}-rds-subnet-group"
-
-#   private_subnet_ids = aws_subnet.private_subnets[*].id
-#   security_group_ids = [aws_security_group.rds_sg.id,
-#     aws_security_group.bastion_sg.id, # Allow access from bastion security group
-#     aws_security_group.nginx_sg.id    # Allow access from nginx security group
-
-#   ]
-#   kms_key_id = module.kms.rds_kms_key_arn
-
-#   rds_monitoring_role_arn = module.iam_roles.rds_monitoring_role_arn
-
-#   depends_on = [
-#     aws_security_group.rds_sg,
-#     aws_subnet.private_subnets,
-#     module.secrets_manager,
-#     module.kms,
-#     aws_security_group.bastion_sg,
-#     aws_security_group.nginx_sg
-#   ]
-
-# }
 
 ##bastion security group
 resource "aws_security_group" "bastion_sg" {

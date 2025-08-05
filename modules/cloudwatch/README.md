@@ -53,8 +53,8 @@ Outputs can include:
 ## ✅ Example Usage
 
 ```hcl
-module "cloudwatch_monitoring" {
-  source                  = "./modules/cloudwatch"  #update this as needed
+module "cloudwatch" {
+  source                  = "github.com/kmkouokam/infra-modules//aws/modules/cloudwatch"  #update this as needed
   env                     = "your-env"
   aws_region              = "us-east-1"
   lambda_function_name    = "ec2-cleanup-function"

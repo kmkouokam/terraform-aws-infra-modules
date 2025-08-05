@@ -41,7 +41,7 @@ This Terraform module provisions one or more **AWS RDS MySQL instances** along w
 
 
 module "rds_mysql" {
-  source            = "./modules/rds_mysql"
+  source            = "github.com/kmkouokam/infra-modules//aws/modules/rds_mysql"
   rds_instances     = var.rds_instances
   engine_version    = "8.0"
   instance_class    = "db.t3.micro"

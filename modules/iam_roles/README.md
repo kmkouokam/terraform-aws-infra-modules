@@ -63,7 +63,7 @@ Instance profiles created for EC2 instances to assume the above roles:
 
 ```hcl
 module "iam_roles" {
-  source = "./modules/iam_roles"  # Update path as needed
+  source = "github.com/kmkouokam/infra-modules//aws/modules/iam_roles"  # Update path as needed
   env    = "dev"
 }
 ```

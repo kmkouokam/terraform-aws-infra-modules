@@ -44,8 +44,8 @@ This Terraform module provisions AWS Key Management Service (KMS) keys for encry
 ## 📌 Usage
 
 ```hcl
-module "kms_keys" {
-  source = "./modules/kms"  # Update path as needed
+module "kms" {
+  source = "github.com/kmkouokam/infra-modules//aws/modules/kms"  # Update path as needed
 }
 ```
 

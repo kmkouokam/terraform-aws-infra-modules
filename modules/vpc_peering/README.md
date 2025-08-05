@@ -59,7 +59,7 @@ This Terraform module establishes a **VPC Peering Connection** between two AWS V
 
 ```hcl
 module "vpc_peering" {
-  source = "./modules/vpc_peering"   #update as needed
+  source = "github.com/kmkouokam/infra-modules//aws/modules/vpc_peering"   #update as needed
 
   vpc_id                      = "vpc-012345"
   vpc_cidr                    = "10.0.0.0/16"

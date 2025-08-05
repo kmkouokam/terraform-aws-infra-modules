@@ -48,7 +48,7 @@ This Terraform module provisions an **AWS WAFv2 Web ACL** with logging and Cloud
 
 ```hcl
 module "waf" {
-  source = "./modules/waf"
+  source = "github.com/kmkouokam/infra-modules//aws/modules/waf"
 
   env                   = "your env"
   scope                 = "REGIONAL"

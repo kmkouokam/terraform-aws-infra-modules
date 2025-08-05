@@ -49,7 +49,7 @@ If defined in `outputs.tf`, you can expect:
 
 ```hcl
 module "bastion" {
-  source                    = "./modules/bastion"  # Update path as needed
+  source                    = "github.com/kmkouokam/infra-modules//aws/modules/bastion"  # Update path as needed
   bastion_instance_type     = var.bastion_instance_type
   public_subnet_ids         = aws_subnet.public_subnets[*].id
   security_group_ids        = [aws_security_group.bastion_sg.id]

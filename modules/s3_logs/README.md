@@ -53,7 +53,7 @@ This Terraform module provisions a secure and lifecycle-managed Amazon S3 bucket
 
 ```hcl
 module "s3_logs_bucket" {
-  source      = "./modules/s3_logs"   #update this as needed
+  source      = "github.com/kmkouokam/infra-modules//aws/modules/s3_logs"   #update this as needed
   bucket_name = "my-org-cloudtrail-logs"
   tags = {
     Environment = "prod"

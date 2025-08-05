@@ -37,7 +37,7 @@ This Terraform module provisions an **AWS CloudTrail** trail that captures all m
 
 ```hcl
 module "cloudtrail" {
-  source          = "./modules/cloudtrail"
+  source          = "github.com/kmkouokam/infra-modules//aws/modules/cloudtrail"
   env             = "your env"
   s3_bucket_name  = "your-s3-bucket-name"
   tags = {

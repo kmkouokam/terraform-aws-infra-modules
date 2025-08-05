@@ -45,7 +45,7 @@ This Terraform module provisions a **Jenkins CI server** on AWS EC2 with the nec
 
 ```hcl
 module "jenkins" {
-  source            = "./modules/jenkins"
+  source            = "github.com/kmkouokam/infra-modules//aws/modules/jenkins"
   env               = var.env
   bucket_name       = var.bucket_name
   instance_type     = "t3.medium"

@@ -40,7 +40,7 @@ This Terraform module securely generates and stores a **random password** in **A
 
 ```hcl
 module "secrets" {
-  source       = "./modules/secrets"
+  source       = "github.com/kmkouokam/infra-modules//aws/modules/secrets"
   secret_name  = var.secret_name
   description  = "Password for MySQL RDS instance"
   kms_key_id   = module.kms.secrets_manager_kms_key_id

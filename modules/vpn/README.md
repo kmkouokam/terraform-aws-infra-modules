@@ -65,7 +65,7 @@ The module sets up:
 
 ```hcl
 module "vpn" {
-  source                = "./modules/vpn"
+  source                = "github.com/kmkouokam/infra-modules//aws/modules/vpn"
   env                   = var.env
   vpc_id                = "vpc-1234567890abcdef"
   vpc_cidr_block        = "10.0.0.0/16"

@@ -47,7 +47,7 @@ This Terraform module provisions a scheduled AWS Lambda function that automatica
 
 ```hcl
 module "lambda_cleanup" {
-  source            = "./modules/lambda_cleanup"
+  source            = "github.com/kmkouokam/infra-modules//aws/modules/lambda_cleanup"
   aws_sns_topic_arn = aws_sns_topic.alerts.arn
   env               = var.env
 }

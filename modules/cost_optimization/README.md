@@ -55,7 +55,7 @@ This Terraform module implements **cost management and optimization strategies**
 
 ```hcl
 module "cost_optimization" {
-  source         = "./modules/cost_optimization"
+  source         = "github.com/kmkouokam/infra-modules//aws/modules/cost_optimization"
   env            = var.env
   budget_amount  = "500"
   alert_email    = ["alerts@example.com", "finance@example.com"]

@@ -55,10 +55,17 @@ Outputs can include:
 ```hcl
 module "cloudwatch_monitoring" {
   source                  = "./modules/cloudwatch"
-  env                     = "you-env"
+  env                     = "your-env"
   aws_region              = "us-east-1"
   lambda_function_name    = "ec2-cleanup-function"
   rds_instance_names      =  module.rds_mysql.rds_instance_identifiers
   frontend_instance_name  =  module.nginx_frontend.frontend_instance_name[*]
   aws_sns_topic_arn       = aws_sns_topic.alerts.arn
 }
+
+
+
+## 📄 License
+
+This project is licensed under the **Mozilla Public License 2.0** (MPL-2.0).  
+See the [LICENSE](./LICENSE) file for details.

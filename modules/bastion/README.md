@@ -49,7 +49,7 @@ If defined in `outputs.tf`, you can expect:
 
 ```hcl
 module "bastion" {
-  source                    = "./modules/bastion"
+  source                    = "./modules/bastion"  # Update path as needed
   bastion_instance_type     = var.bastion_instance_type
   public_subnet_ids         = aws_subnet.public_subnets[*].id
   security_group_ids        = [aws_security_group.bastion_sg.id]
@@ -57,3 +57,10 @@ module "bastion" {
   iam_instance_profile_name = module.iam_roles.ec2_instance_profile_name
   env                       = "your-env"
 }
+
+
+
+## 📄 License
+
+This project is licensed under the **Mozilla Public License 2.0** (MPL-2.0).  
+See the [LICENSE](./LICENSE) file for details.

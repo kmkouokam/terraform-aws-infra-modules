@@ -7,10 +7,7 @@ data "aws_acm_certificate" "devopsguru_cert" {
   most_recent = true
 }
 
-# data "aws_vpc" "main" {
-#   id = var.vpc_id
 
-# }
 
 # Lookup existing subnets
 data "aws_subnet" "public" {
@@ -24,17 +21,7 @@ data "aws_subnet" "private" {
   id       = each.value
 }
 
-# locals {
-#   unique_public_subnets = {
-#     for id, subnet in data.aws_subnet.public :
-#     subnet.availability_zone => id... if !subnet.availability_zone in (keys({ for k, _ in data.aws_subnet.public : k => true }))
-# }
 
-#   unique_private_subnets = {
-#     for id, subnet in data.aws_subnet.private :
-#     subnet.availability_zone => id... if !subnet.availability_zone in (keys({ for k, _ in data.aws_subnet.private : k => true }))
-#   }
-# }
 
 locals {
   unique_public_subnets = {
@@ -49,12 +36,6 @@ locals {
     if !contains(keys({ for az, _ in data.aws_subnet.private : az => true }), subnet.availability_zone)
   }
 }
-
-
-
-
-
-
 
 # VPN Endpoint
 resource "aws_ec2_client_vpn_endpoint" "vpn_endpoint" {

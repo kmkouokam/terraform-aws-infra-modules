@@ -13,10 +13,6 @@ data "aws_ami" "ubuntu" {
 }
 
 
-
-
-
-
 resource "aws_launch_template" "nginx" {
   name_prefix   = "${var.env}-nginx-"
   image_id      = data.aws_ami.ubuntu.id

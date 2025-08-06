@@ -1,66 +1,56 @@
-# Bastion Host Terraform Module
+ # Bastion Host Terraform Module
 
-This Terraform module provisions a **Bastion Host EC2 instance** on AWS. The bastion host is a secure entry point used to connect to private instances in your Virtual Private Cloud (VPC).
-
----
-
-## 🚀 Features
-
-- Launches an EC2 instance using the latest Ubuntu 24.04 AMI (via SSM).
-- Attaches to a public subnet with a public IP for SSH access.
-- Associates IAM instance profile and SSH key.
-- Uses user data to bootstrap the host on launch.
-- Tags the instance with environment-specific labels.
+This module provisions a secure EC2-based Bastion Host in a public subnet for SSH access to private resources in your VPC.
 
 ---
 
-## 📁 Files
+## Features
 
-- `main.tf`: Core Terraform configuration for the bastion instance.
-- `user_data.sh`: Optional shell script for configuring the instance at launch (base64-encoded).
-- `variables.tf`: Expected input variables (not shown here).
-- `outputs.tf`: Outputs such as the instance ID, public IP (expected, if defined).
-
----
-
-## 📥 Inputs
-
-| Name                      | Description                                         | Type     | Required |
-|---------------------------|-----------------------------------------------------|----------|----------|
-| `bastion_instance_type`   | EC2 instance type (e.g., `t3.micro`)                | `string` | ✅ Yes    |
-| `public_subnet_ids`       | List of public subnet IDs                           | `list`   | ✅ Yes    |
-| `security_group_ids`      | List of security group IDs to attach                | `list`   | ✅ Yes    |
-| `key_name`                | Name of the SSH key pair                            | `string` | ✅ Yes    |
-| `iam_instance_profile_name` | Name of the IAM instance profile                 | `string` | ✅ Yes    |
-| `env`                     | Environment tag (e.g., `dev`, `prod`)               | `string` | ✅ Yes    |
+- Launches a Bastion EC2 instance in a specified public subnet.
+- Uses the latest Ubuntu 24.04 AMI from SSM Parameter Store.
+- Associates a public IP for SSH access.
+- Accepts custom SSH key, IAM instance profile, and security groups.
+- Accepts tags and environment naming.
+- Supports initialization with a `user_data.sh` script.
 
 ---
 
-## 📤 Outputs (Optional)
+## Inputs
 
-If defined in `outputs.tf`, you can expect:
-
-- `bastion_instance_id`
-- `bastion_public_ip`
+- `aws_region` – AWS region to deploy the Bastion host.
+- `env` – Environment name (e.g., `dev`, `prod`) used for naming and tagging.
+- `bastion_instance_type` – EC2 instance type for the Bastion (e.g., `t3.micro`).
+- `public_subnet_ids` – List of public subnet IDs (only the first is used).
+- `security_group_ids` – Security Group IDs to attach to the Bastion instance.
+- `key_name` – SSH key pair name used for login access.
+- `allowed_ssh_cidrs` – List of allowed CIDR blocks for SSH access (not directly used in this module unless you handle it in your SG).
+- `iam_instance_profile_name` – Name of the IAM instance profile to attach.
+- `tags` – Key-value map of tags to apply to the instance and resources.
 
 ---
 
-## 📘 Example Usage
+## Outputs
+
+- `bastion_instance_id` – The ID of the created Bastion EC2 instance.
+- `public_subnet_ids` – The public IP address assigned to the Bastion host.
+
+---
+
+## Example Usage
 
 ```hcl
 module "bastion" {
-  source                    = "github.com/kmkouokam/infra-modules//aws/modules/bastion"  # Update path as needed
-  bastion_instance_type     = var.bastion_instance_type
+  source                    = "github.com/kmkouokam/infra-modules//aws/modules/bastion"
+  aws_region                = "us-east-1"
+  env                       = "prod"
+  bastion_instance_type     = "t3.micro"
   public_subnet_ids         = aws_subnet.public_subnets[*].id
-  security_group_ids        = [aws_security_group.bastion_sg.id]
-  key_name                  = "my-key-pair"
+  security_group_ids        = ["sg-abc123"]
+  key_name                  = "my-key"
+  allowed_ssh_cidrs         = ["0.0.0.0/0"]
   iam_instance_profile_name = module.iam_roles.ec2_instance_profile_name
-  env                       = "your-env"
+  tags = {
+    Project     = "MyApp"
+    Environment = var.env
+  }
 }
-
-
-
-## 📄 License
-
-This project is licensed under the **Mozilla Public License 2.0** (MPL-2.0).  
-See the [LICENSE](./LICENSE) file for details.

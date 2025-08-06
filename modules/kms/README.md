@@ -1,64 +1,50 @@
-# AWS KMS Keys Module
+# KMS Keys Terraform Module
 
-This Terraform module provisions AWS Key Management Service (KMS) keys for encrypting data used by key AWS services such as **Secrets Manager**, **RDS MySQL**, and **Amazon S3** (e.g., CloudTrail logs). It includes key rotation and fine-grained policies to securely delegate encryption responsibilities to the respective services.
-
----
-
-## 🔐 KMS Keys Provisioned
-
-### 1. 🔑 Secrets Manager KMS Key
-- **Resource:** `aws_kms_key.secrets_manager`
-- **Description:** Key for encrypting secrets stored in AWS Secrets Manager
-- **Key Policy Includes:**
-  - Full access for the AWS account root
-  - Permissions for `secretsmanager.amazonaws.com` to use the key (Encrypt, Decrypt, GenerateDataKey, DescribeKey)
+This Terraform module provisions AWS KMS (Key Management Service) keys and associated key policies for encrypting critical resources such as Secrets Manager secrets, RDS MySQL databases, and S3 buckets (e.g., CloudTrail logs).
 
 ---
 
-### 2. 🛢️ RDS MySQL KMS Key
-- **Resource:** `aws_kms_key.rds`
-- **Description:** Key for encrypting RDS MySQL data
-- **Key Policy Includes:**
-  - Full access for the AWS account root
-  - Permissions for `rds.amazonaws.com` to use the key
+## Features
+
+- Creates a KMS key for Secrets Manager encryption with key rotation enabled
+- Creates a KMS key for RDS MySQL encryption with key rotation enabled
+- Creates a KMS key for S3 encryption (e.g., CloudTrail logs) with key rotation enabled
+- Defines appropriate key policies granting access to the root AWS account and respective AWS services (Secrets Manager, RDS, S3)
+- Sets deletion window to 20 days for safe key removal
 
 ---
 
-### 3. 📦 S3 (CloudTrail Logs) KMS Key
-- **Resource:** `aws_kms_key.s3`
-- **Description:** Key for encrypting S3 buckets, such as those storing CloudTrail logs
-- **Key Policy Includes:**
-  - Full access for the AWS account root
-  - Permissions for `s3.amazonaws.com` to use the key
+## Resources Created
+
+- `aws_kms_key.secrets_manager`
+- `aws_kms_key_policy.secrets_manager_policy`
+- `aws_kms_key.rds`
+- `aws_kms_key_policy.rds_policy`
+- `aws_kms_key.s3`
+- `aws_kms_key_policy.s3_policy`
 
 ---
 
-## 🔄 Features
+## Inputs
 
-- ✅ Key rotation enabled for all keys
-- 🧹 Deletion window of 20 days (allows recovery if keys are accidentally scheduled for deletion)
-- 📜 Custom key policies to allow only trusted AWS services to use the keys
+- **env** (string): The environment for tagging and naming (e.g., dev, prod).
 
 ---
 
-## 📌 Usage
+## Outputs
+
+- **secrets_manager_kms_key_id**: KMS key ID for Secrets Manager
+- **rds_kms_key_id**: KMS key ID for RDS MySQL
+- **s3_kms_key_id**: KMS key ID for S3 encryption
+- **rds_kms_key_arn**: ARN of the KMS key for RDS MySQL
+
+---
+
+## Usage Example
 
 ```hcl
 module "kms" {
-  source = "github.com/kmkouokam/infra-modules//aws/modules/kms"  # Update path as needed
+  source = "github.com/kmkouokam/infra-modules//aws/modules/kms"
+  env    = var.env
 }
-```
-
----
-
-## ✅ Requirements
-
-- Terraform v1.0+
-- AWS Provider v4.0+
-
----
-
-## 📄 License
-
-This project is licensed under the **Mozilla Public License 2.0** (MPL-2.0).  
-See the [LICENSE](./LICENSE) file for full details.
+ 

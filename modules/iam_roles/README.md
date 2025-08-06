@@ -1,99 +1,47 @@
-# IAM Roles & Policies Module
+ # IAM Roles Terraform Module
 
-This Terraform module provisions various IAM roles, policies, and instance profiles required for AWS services including EC2, RDS, WAF, CloudTrail, CloudWatch, and AWS X-Ray. It is designed to follow security and monitoring best practices for your AWS infrastructure.
-
----
-
-## 📁 Resources Provisioned
-
-### 🔐 EC2 IAM Role
-- **Purpose:** Grants EC2 instances access to AWS Systems Manager (SSM) and CloudWatch monitoring.
-- **Role:** `${var.env}-ec2-role`
-- **Attached Policies:**
-  - `AmazonSSMManagedInstanceCore`
-  - `CloudWatchAgentServerPolicy`
-  - Custom inline policy for CloudWatch and X-Ray actions
-
-### 📈 CloudWatch Agent Role
-- **Purpose:** Allows CloudWatch Agent on EC2 to collect and send metrics/logs.
-- **Role:** `${var.env}-cw-agent-role`
-- **Policy:** `CloudWatchAgentServerPolicy`
-
-### 🛢️ RDS Monitoring Role
-- **Purpose:** Enables enhanced monitoring for RDS MySQL.
-- **Role:** `${var.env}-rds-monitoring-role`
-- **Policy:** `AmazonRDSEnhancedMonitoringRole`
-
-### 🛡️ WAF Logging Role
-- **Purpose:** Allows AWS WAF to log events to CloudWatch Logs.
-- **Role:** `${var.env}-waf-logging-role`
-- **Inline Policy:** Custom policy for CloudWatch Logs actions
-
-### 📜 CloudTrail Logging Role
-- **Purpose:** Allows CloudTrail to publish logs to CloudWatch.
-- **Role:** `${var.env}-cloudtrail-logs-role`
-- **Inline Policy:** Custom policy for CloudWatch Logs actions
-
-### 📊 CloudWatch Monitoring Permissions
-- **Inline Policy:** Grants EC2 permission to:
-  - List and get CloudWatch metrics
-  - Send traces to AWS X-Ray
-
-### 📦 X-Ray EC2 Role
-- **Purpose:** Allows EC2 instances to send trace data to AWS X-Ray.
-- **Role:** `xray-ec2-role`
-- **Policy:** `AWSXRayDaemonWriteAccess`
+This Terraform module creates IAM roles, policies, and instance profiles to support AWS workloads including EC2, CloudWatch, RDS monitoring, WAF logging, CloudTrail logging, and AWS X-Ray.
 
 ---
 
-## 👤 IAM Instance Profiles
+## Features
 
-Instance profiles created for EC2 instances to assume the above roles:
-
-| Instance Profile Name | Associated Role |
-|------------------------|-----------------|
-| `${var.env}-ec2-instance-profile` | `ec2_role` |
-| `${var.env}-cw-agent-instance-profile` | `cw_agent_role` |
-| `${var.env}-cw-agent-instance-profile-${random_id}` | `cw_agent_role` |
-| `xray-ec2-profile` | `xray_ec2_role` |
+- EC2 IAM role with permissions for SSM and CloudWatch agent  
+- CloudWatch agent role and policies  
+- RDS MySQL Enhanced Monitoring role  
+- WAF logging role with CloudWatch Logs permissions  
+- CloudTrail logging role with CloudWatch Logs permissions  
+- AWS X-Ray EC2 role with daemon write access  
+- Instance profiles for associating roles to EC2 instances  
+- Environment-based naming convention for resources  
 
 ---
 
-## 📌 Usage
+## Inputs
+
+- `env`: The deployment environment, used as a prefix for IAM roles and instance profiles (string, required)
+
+---
+
+## Outputs
+
+- `rds_monitoring_role_arn`: ARN of the RDS monitoring IAM role  
+- `waf_logging_role_arn`: ARN of the WAF logging IAM role  
+- `cloudtrail_logs_role_arn`: ARN of the CloudTrail logs IAM role  
+- `ec2_instance_profile_name`: Name of the EC2 instance profile with SSM and CloudWatch permissions  
+- `cloudwatch_agent_role_name`: Name of the CloudWatch agent IAM role  
+- `cloudwatch_agent_profile_name`: Name of the CloudWatch agent instance profile  
+- `ec2_cloudwatch_metrics_name`: Name of the IAM policy for EC2 CloudWatch metrics  
+- `xray_instance_profile_name`: Name of the instance profile for AWS X-Ray EC2 role  
+
+---
+
+## Usage Example
 
 ```hcl
 module "iam_roles" {
-  source = "github.com/kmkouokam/infra-modules//aws/modules/iam_roles"  # Update path as needed
-  env    = "dev"
+  source = "github.com/kmkouokam/infra-modules//aws/modules/iam_roles"
+  env    = var.env
 }
-```
 
----
-
-## 🔧 Variables
-
-| Name | Description | Type | Required |
-|------|-------------|------|----------|
-| `env` | Environment name used for naming resources (e.g., `dev`, `prod`) | `string` | ✅ Yes |
-
----
-
-## ✅ Requirements
-
-- Terraform v1.0+
-- AWS Provider v4.0+
-
----
-
-## 🔐 Security Best Practices
-
-- Follows least-privilege principle for IAM roles and policies.
-- Isolates roles for each AWS service to ensure secure role assumptions.
-- Supports enhanced observability via CloudWatch and AWS X-Ray.
-
----
-
-## 📄 License
-
-This project is licensed under the **Mozilla Public License 2.0** (MPL-2.0).  
-See the [LICENSE](./LICENSE) file for details.
+ 

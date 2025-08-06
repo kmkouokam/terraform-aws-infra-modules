@@ -1,115 +1,73 @@
-# Nginx Frontend Infrastructure Module
+ # NGINX Frontend Terraform Module
 
-This Terraform module provisions a scalable, high-availability Nginx frontend architecture on AWS using the following components:
-
-- Ubuntu 24.04 AMI (fetched dynamically)
-- EC2 Launch Template with Nginx user data script
-- Auto Scaling Group (ASG)
-- Application Load Balancer (ALB)
-- Target Group for HTTP traffic
-- Customizable parameters for instance type, key pair, subnets, and security groups
+This Terraform module provisions a scalable NGINX-based frontend architecture using EC2, Auto Scaling Group (ASG), Launch Template, and Application Load Balancer (ALB). It’s ideal for deploying public-facing web services in a highly available setup.
 
 ---
 
-## 🧱 Components Deployed
+## Features
 
-### 📦 AMI Data Source
-- **Source:** AWS Systems Manager (SSM)
-- **AMI:** Ubuntu Server 24.04 (Canonical, HVM, EBS, gp3)
-- **Fetched via:** `data.aws_ssm_parameter.ubuntu_ami`
-
----
-
-### 🚀 Launch Template
-- **Resource:** `aws_launch_template.nginx`
-- **Key Features:**
-  - Ubuntu 24.04 AMI
-  - Instance type defined via variable
-  - User data script for Nginx installation (`install_nginx.sh`)
-  - IAM instance profile and security group support
+- Launches EC2 instances with Ubuntu 24.04 and installs NGINX using a user data script
+- Creates a Launch Template for consistent instance configuration
+- Deploys an Application Load Balancer (ALB) with health checks
+- Configures an Auto Scaling Group (ASG) with min, max, and desired capacity
+- Assigns CloudWatch agent and X-Ray instance profile roles (optional)
+- Supports configurable IAM, SSH access, security groups, and networking
 
 ---
 
-### 🏗️ Auto Scaling Group
-- **Resource:** `aws_autoscaling_group.nginx_asg`
-- **Configuration:**
-  - Launch template-based scaling
-  - Custom min/max/desired capacity
-  - Attached to public subnets
-  - Integrated with target group for ALB
+## Inputs
+
+- `env`: Environment name (e.g., `dev`, `prod`)
+- `forntend_instance_type`: EC2 instance type (e.g., `t3.micro`)
+- `iam_instance_profile_name`: IAM instance profile name for NGINX EC2 instances
+- `xray_instance_profile_name`: IAM instance profile name for AWS X-Ray (optional)
+- `cloudwatch_agent_role_name`: Name of the IAM role for CloudWatch Agent
+- `key_name`: SSH key pair name for accessing instances
+- `public_subnet_ids`: List of public subnet IDs to launch EC2 instances in
+- `vpc_id`: The VPC ID to associate with the frontend resources
+- `elb_security_group_ids`: Security groups for the ALB
+- `nginx_security_group_ids`: Security groups for the NGINX instances
+- `desired_capacity`: Desired number of instances in the ASG
+- `min_size`: Minimum number of instances in the ASG
+- `max_size`: Maximum number of instances in the ASG
 
 ---
 
-### 🌐 Application Load Balancer (ALB)
-- **Resource:** `aws_lb.nginx_alb`
-- **Configuration:**
-  - Public ALB
-  - Supports HTTP traffic on port 80
-  - Attached to public subnets and security groups
+## Outputs
+
+- `frontend_instance_id`: ID(s) of the created Launch Template(s) for NGINX
+- `frontend_instance_name`: Name(s) of the NGINX launch template(s)
+- `nginx_alb_name`: Name of the Application Load Balancer
+- `nginx_alb_arn`: ARN of the Application Load Balancer
 
 ---
 
-### 🎯 Target Group
-- **Resource:** `aws_lb_target_group.nginx_tg`
-- **Purpose:** Routes ALB traffic to EC2 instances
-- **Health Checks:**
-  - Path: `/`
-  - Interval: 30 seconds
-  - Healthy threshold: 2
-  - Unhealthy threshold: 2
-
----
-
-## 🔧 Required Variables
-
-| Name                        | Description                                | Type     |
-|-----------------------------|--------------------------------------------|----------|
-| `env`                       | Environment name prefix                     | `string` |
-| `vpc_id`                    | ID of the VPC                               | `string` |
-| `public_subnet_ids`         | List of public subnet IDs                   | `list`   |
-| `elb_security_group_ids`    | List of security group IDs for the ALB      | `list`   |
-| `nginx_security_group_ids`  | List of security group IDs for EC2          | `list`   |
-| `key_name`                  | Name of the EC2 key pair                    | `string` |
-| `iam_instance_profile_name`| IAM instance profile name for EC2           | `string` |
-| `forntend_instance_type`    | EC2 instance type (e.g., `t3.micro`)        | `string` |
-| `desired_capacity`          | Desired number of EC2 instances             | `number` |
-| `min_size`                  | Minimum number of EC2 instances             | `number` |
-| `max_size`                  | Maximum number of EC2 instances             | `number` |
-
-> **Note:** The user data script `install_nginx.sh` must exist in the same directory or module path.
-
----
-
-## 🚀 Example Usage
+## Example Usage
 
 ```hcl
 module "nginx_frontend" {
-  source                    = "github.com/kmkouokam/infra-modules//aws/modules/nginx_frontend"   #update as needed
-  env                       = "dev"
-  vpc_id                    = "vpc-xxxxxxxx"
-  public_subnet_ids         = aws_subnet.public_subnets[*].id
-  elb_security_group_ids    = ["sg-xxxxxx"]
-  nginx_security_group_ids  = ["sg-yyyyyy"]
-  key_name                  = "my-keypair"
-  iam_instance_profile_name = module.iam_roles.ec2_instance_profile_name
-  forntend_instance_type    = "t3.micro"
-  desired_capacity          = 2
-  min_size                  = 1
-  max_size                  = 3
+  source = "github.com/kmkouokam/infra-modules//aws/modules/nginx_frontend"
+
+  env                        = "prod"
+  vpc_id                     = "vpc-abc123"
+  public_subnet_ids          = ["subnet-123", "subnet-456"]
+  forntend_instance_type     = "t3.micro"
+  key_name                   = "my-key"
+  iam_instance_profile_name  = "nginx-ec2-profile"
+  cloudwatch_agent_role_name = "cw-agent-role"
+  xray_instance_profile_name = "xray-profile"
+  nginx_security_group_ids   = ["sg-nginx"]
+  elb_security_group_ids     = ["sg-alb"]
+  desired_capacity           = 2
+  min_size                   = 1
+  max_size                   = 4
 }
 ```
 
 ---
 
-## ✅ Requirements
+## Notes
 
-- Terraform v1.0+
-- AWS Provider v4.0+
-- Ubuntu 24.04 compatible AMI via SSM
-
----
-
-## 📄 License
-
-This project is licensed under the **Mozilla Public License 2.0** (MPL-2.0).  
-See the [LICENSE](./LICENSE) file for full details.
+- The module expects a `install_nginx.sh` script for configuring NGINX to exist in the same module directory.
+- Ensure security groups allow inbound HTTP (port 80) traffic and health checks.
+- The ALB and ASG are deployed in public subnets only.

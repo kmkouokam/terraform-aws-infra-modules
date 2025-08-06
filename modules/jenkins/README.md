@@ -1,89 +1,57 @@
-# Jenkins Server Module
+ # Jenkins EC2 Submodule
 
-This Terraform module provisions a **Jenkins CI server** on AWS EC2 with the necessary IAM roles, permissions, and network settings.
-
----
-
-## 🚀 What This Module Does
-
-- Creates an **IAM Role** for the Jenkins EC2 instance with permissions to access S3 buckets for artifacts.
-- Creates an **IAM Instance Profile** linked to the Jenkins EC2 role.
-- Retrieves the latest **Ubuntu 24.04 AMI** from AWS Systems Manager Parameter Store.
-- Launches an **EC2 instance** running Ubuntu with:
-  - Configured instance type and subnet
-  - Assigned security groups and SSH key
-  - Attached IAM instance profile
-  - User data script to install and configure Jenkins (`install_jenkins.sh`)
+This Terraform submodule provisions a Jenkins server on an EC2 instance with IAM roles and policies for S3 access, using Ubuntu 24.04. It sets up the necessary networking, security, and user data bootstrap configuration to install and run Jenkins in your specified environment.
 
 ---
 
-## 📦 Resources Created
+## Features
 
-| Resource                      | Purpose                                           |
-|-------------------------------|--------------------------------------------------|
-| `aws_iam_role.jenkins_ec2_role`            | EC2 assume role for Jenkins instance               |
-| `aws_iam_role_policy.jenkins_ci_permissions` | IAM policy granting S3 read/write/list access for artifacts |
-| `aws_iam_instance_profile.jenkins_instance_profile` | Instance profile attached to the EC2 instance        |
-| `aws_instance.jenkins_server`              | EC2 instance running Jenkins with Ubuntu AMI        |
-
----
-
-## 🔧 Input Variables
-
-| Name                | Description                                    | Type        | Required |
-|---------------------|------------------------------------------------|-------------|----------|
-| `env`               | Environment prefix (e.g., `dev`, `prod`)      | `string`    | ✅ Yes    |
-| `bucket_name`        | S3 bucket name for storing Jenkins artifacts   | `string`    | ✅ Yes    |
-| `instance_type`      | EC2 instance type for Jenkins server           | `string`    | ✅ Yes    |
-| `public_subnet_ids`  | List of public subnet IDs to launch the server | `list(string)` | ✅ Yes    |
-| `security_group_ids` | List of security group IDs attached to instance| `list(string)` | ✅ Yes    |
-| `key_name`           | SSH key pair name for EC2 instance access      | `string`    | ✅ Yes    |
+- Launches a Jenkins EC2 instance in a public subnet.
+- Uses the latest Canonical Ubuntu 24.04 AMI via SSM.
+- Configures IAM roles and policies to allow Jenkins access to a specified S3 bucket for CI/CD artifact storage.
+- Automatically installs Jenkins using a user data script (`install_jenkins.sh`).
+- Tags and names all resources with the provided `env` value for traceability.
 
 ---
 
-## 📋 Usage Example
+## Usage
 
 ```hcl
 module "jenkins" {
-  source            = "github.com/kmkouokam/infra-modules//aws/modules/jenkins"
-  env               = var.env
-  bucket_name       = var.bucket_name
-  instance_type     = "t3.medium"
-  public_subnet_ids = ["subnet-0123456789abcdef0", "subnet-0fedcba9876543210"]
-  security_group_ids = ["sg-0a1b2c3d4e5f6g7h8"]
-  key_name          = "my-ssh-key"
+  source             = "github.com/kmkouokam/infra-modules//aws/modules/jenkins"
+  env                = var.env
+  instance_type      = "t3.medium"
+  key_name           = "my-key-pair"
+  bucket_name        =  var.bucket_name
+  public_subnet_ids  = aws_subnet.public_subnets[*].id
+  security_group_ids = [aws_security_group.jenkins_sg.id]
 }
 ```
 
----
-
-## 🔐 IAM Permissions
-
-- Jenkins EC2 instance role is granted:
-  - `s3:GetObject`
-  - `s3:PutObject`
-  - `s3:ListBucket`
-  
-  on the specified S3 bucket for storing build artifacts.
+Ensure your `install_jenkins.sh` script is located in the module directory and contains the commands to install Jenkins, configure ports, and start the service.
 
 ---
 
-## 🖥️ Jenkins Installation
+## Inputs
 
-- The `install_jenkins.sh` script (in the module folder) runs during EC2 instance initialization.
-- It installs and configures Jenkins automatically on Ubuntu 24.04 LTS.
-
----
-
-## 🛠️ Notes
-
-- Ensure the specified security groups allow inbound access for Jenkins (default port 8080) and SSH (port 22).
-- The instance is launched with a public IP; adjust if deploying in private subnets or behind a NAT.
-- Modify `install_jenkins.sh` as needed to customize Jenkins setup.
+- `env`: The environment label (e.g., `dev`, `prod`) used in resource naming.
+- `instance_type`: The EC2 instance type to launch (e.g., `t3.medium`).
+- `key_name`: The name of the SSH key pair for access.
+- `bucket_name`: The S3 bucket name used for storing Jenkins build artifacts.
+- `public_subnet_ids`: A list of public subnet IDs to host the EC2 instance.
+- `security_group_ids`: A list of security group IDs to associate with the EC2 instance.
 
 ---
 
-## 📄 License
+## Outputs
 
-This project is licensed under the **Mozilla Public License 2.0** (MPL-2.0).  
-See the [LICENSE](./LICENSE) file for details.
+This module does not define explicit outputs, but you may extend it to output values such as the Jenkins instance's public IP address, DNS name, or IAM role ARN.
+
+---
+
+## Notes
+
+- This module assumes that Jenkins will be installed via `install_jenkins.sh`, which should be tailored to your OS and Jenkins setup.
+- The EC2 instance is automatically associated with a public IP address for web access.
+- Ensure the associated security group allows inbound access on port 8080 (Jenkins default UI port) and port 22 (SSH).
+- Jenkins can be configured to use the specified S3 bucket for build artifact storage via plugins or CLI.

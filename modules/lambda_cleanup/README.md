@@ -1,70 +1,67 @@
-# AWS Lambda Cleanup Module
+# Lambda Cleanup Submodule
 
-This Terraform module provisions a scheduled AWS Lambda function that automatically cleans up unused EC2 resources and publishes notifications to SNS.
-
----
-
-## 🚀 What This Module Does
-
-- Creates an **IAM Role** with permissions to:
-  - Describe and terminate EC2 instances
-  - Describe and release Elastic IP addresses
-  - Describe and delete EBS volumes
-  - Write logs to CloudWatch Logs
-  - Publish messages to a specified SNS topic
-- Deploys a **Python 3.11 Lambda function** (`CleanupUnusedResources`) from a packaged zip file
-- Schedules a **weekly CloudWatch Event rule** to trigger the Lambda every Monday at 00:00 UTC
-- Grants CloudWatch Events permission to invoke the Lambda function
+This Terraform submodule provisions a scheduled AWS Lambda function that automatically cleans up unused EC2 resources such as unassociated EBS volumes, idle EC2 instances, and unattached Elastic IPs. It also configures the necessary IAM roles, SNS alerts, and a CloudWatch Events rule for weekly execution.
 
 ---
 
-## 📦 Resources Created
+## Features
 
-| Resource                          | Purpose                                        |
-|----------------------------------|------------------------------------------------|
-| `aws_iam_role.lambda_cleanup_role`        | IAM role assumed by the Lambda function        |
-| `aws_iam_policy.lambda_cleanup_policy`    | Policy granting EC2, Logs, and SNS permissions |
-| `aws_iam_role_policy_attachment.attach_cleanup_policy` | Attaches cleanup policy to Lambda role          |
-| `aws_iam_policy.lambda_sns_publish`       | Additional SNS publish policy                   |
-| `aws_iam_role_policy_attachment.lambda_sns_attachment` | Attaches SNS policy to Lambda role               |
-| `aws_lambda_function.cleanup`               | The cleanup Lambda function deployed            |
-| `aws_cloudwatch_event_rule.weekly_cleanup` | CloudWatch scheduled rule triggering Lambda    |
-| `aws_cloudwatch_event_target.cleanup_target` | Event target linking the rule to Lambda         |
-| `aws_lambda_permission.allow_cloudwatch`   | Permission for CloudWatch to invoke Lambda      |
+- **Weekly Cleanup**: Scheduled every Monday at 00:00 UTC via CloudWatch Events.
+- **Permissions**: IAM role with policies to describe and delete EC2 resources, publish SNS alerts, and write logs.
+- **Alerting**: Notifies via the provided SNS Topic ARN when actions are performed.
+- **Environment Tagging**: Resources are tagged using the `env` variable.
+- **Logging**: Sends logs to CloudWatch Logs.
+- **Python Runtime**: Uses Python 3.11 and expects a zipped Lambda package at `function.zip`.
 
 ---
 
-## 🔧 Input Variables
-
-| Name              | Description                                | Type   | Required |
-|-------------------|--------------------------------------------|--------|----------|
-| `aws_sns_topic_arn`| ARN of the SNS topic to publish notifications | `string` | ✅ Yes    |
-| `env`             | (Optional) Environment name for tagging or naming | `string` | No       |
-
----
-
-## 📋 Usage Example
+## Usage
 
 ```hcl
 module "lambda_cleanup" {
-  source            = "github.com/kmkouokam/infra-modules//aws/modules/lambda_cleanup"
-  aws_sns_topic_arn = aws_sns_topic.alerts.arn
-  env               = var.env
+  source             = "github.com/kmkouokam/infra-modules//aws/modules/lambda_cleanup"
+  env                = "prod"
+  aws_sns_topic_arn  = aws_sns_topic.alerts.arn
 }
 ```
 
----
-
-## 🛠️ Notes
-
-- The Lambda function code must be packaged as `function.zip` and placed in the module directory.
-- The function runs weekly on Mondays at midnight UTC by default (modifiable via the cron expression).
-- The Lambda environment variables include `LOG_LEVEL` and `SNS_TOPIC_ARN` for logging and notifications.
-- Make sure the SNS topic exists and the Lambda has permissions to publish to it.
+Ensure that a valid `function.zip` is available in the module directory, containing your Python handler with the entrypoint `lambda_function.lambda_handler`.
 
 ---
 
-## 📄 License
+## Input Variables
 
-This project is licensed under the **Mozilla Public License 2.0** (MPL-2.0).  
-See the [LICENSE](./LICENSE) file for details.
+- `env` – (string) Environment label used in naming/tagging. Default: `"dev"`.
+- `aws_sns_topic_arn` – (string) The ARN of the SNS topic where cleanup notifications will be sent.
+
+---
+
+## Outputs
+
+- `lambda_function_name` – Name of the Lambda function.
+- `lambda_function_arn` – ARN of the Lambda function.
+
+---
+
+## Schedule Details
+
+The cleanup function runs on the following schedule:
+
+- `cron(0 0 ? * 1 *)` — every Monday at 00:00 UTC.
+
+---
+
+## Example Use Cases
+
+- Automatically delete unattached EBS volumes to reduce costs.
+- Terminate stopped EC2 instances that have been idle for too long.
+- Reclaim Elastic IPs that are not associated with any instance.
+
+---
+
+## Notes
+
+- Extend the function logic if needed to clean up additional AWS resources.
+- Be cautious with the IAM permissions and limit scope in production.
+- The function sends logs to CloudWatch and alerts to the SNS topic for observability.
+ 

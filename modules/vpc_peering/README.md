@@ -1,92 +1,67 @@
-# VPC Peering Connection Module
+# VPC Peering Terraform Module
 
-This Terraform module establishes a **VPC Peering Connection** between two AWS VPCs (requester and accepter) across the same or different regions. It also configures routing on both sides (public and private route tables) to enable full network communication.
-
----
-
-## 🔁 Resources Provisioned
-
-### 🔷 VPC Peering Connection (Requester)
-- **Resource:** `aws_vpc_peering_connection.peer`
-- **Establishes** a peering request from the local (requester) VPC to the remote (accepter) VPC.
-- **Supports cross-region** peering via `peer_region`
-- **Tags:** `"Side" = "Requester"`
+This Terraform submodule provisions a **VPC Peering Connection** between two VPCs, including route configuration for both the requester and accepter sides. It supports both **intra-region** and **cross-region** peering and provides routing updates for public and private subnets on both ends.
 
 ---
 
-### 🔁 (Optional) VPC Peering Connection Accepter
-> ❗ Not currently used, but can be enabled if auto-accept is not configured or cross-account peering is required.
-<!-- Uncomment in `main.tf` to use `aws_vpc_peering_connection_accepter.peer` -->
+## Features
+
+- Creates a VPC peering connection between a local VPC and a peer VPC
+- Supports automatic or manual peering acceptance
+- Updates public and private route tables for both requester and accepter sides
+- Supports cross-region VPC peering
+- Flexible and environment-agnostic
 
 ---
 
-### 📡 Routing Configuration
-
-#### 🟦 Requester Side Routes
-
-| Resource | Description |
-|----------|-------------|
-| `aws_route.requester_public_routes`  | Adds routes to the peer VPC in each **public** route table in the requester VPC |
-| `aws_route.requester_private_routes` | Adds routes to the peer VPC in each **private** route table in the requester VPC |
-
-#### 🟩 Accepter Side Routes
-
-| Resource | Description |
-|----------|-------------|
-| `aws_route.accepter_public_routes`  | Adds routes to the requester VPC in each **public** route table in the accepter VPC |
-| `aws_route.accepter_private_routes` | Adds routes to the requester VPC in each **private** route table in the accepter VPC |
-
----
-
-## 📌 Required Variables
-
-| Name                        | Description                                 | Type     |
-|-----------------------------|---------------------------------------------|----------|
-| `vpc_id`                    | ID of the **requester** VPC                 | `string` |
-| `vpc_cidr`                  | CIDR block of the **requester** VPC         | `string` |
-| `peer_vpc_id`              | ID of the **accepter** VPC                  | `string` |
-| `peer_vpc_cidr`            | CIDR block of the **accepter** VPC          | `string` |
-| `peer_aws_region`          | AWS region of the peer VPC                  | `string` |
-| `auto_accept`              | Whether to auto-accept the peering request  | `bool`   |
-| `public_route_table_ids`   | List of public route table IDs (requester)  | `list`   |
-| `private_route_table_ids`  | List of private route table IDs (requester) | `list`   |
-| `peer_public_route_table_ids`   | List of public route table IDs (accepter)  | `list`   |
-| `peer_private_route_table_ids`  | List of private route table IDs (accepter) | `list`   |
-
----
-
-## 🚀 Example Usage
+## Usage
 
 ```hcl
 module "vpc_peering" {
-  source = "github.com/kmkouokam/infra-modules//aws/modules/vpc_peering"   #update as needed
+  source = "github.com/kmkouokam/infra-modules//aws/modules/vpc_peering"
 
-  vpc_id                      = "vpc-012345"
-  vpc_cidr                    = "10.0.0.0/16"
-  peer_vpc_id                = "vpc-678910"
-  peer_vpc_cidr              = "10.1.0.0/16"
-  peer_aws_region            = "us-west-2"
-  auto_accept                = true
-
-  public_route_table_ids         = ["rtb-aaaaaa"]
-  private_route_table_ids        = ["rtb-bbbbbb"]
-  peer_public_route_table_ids    = ["rtb-cccccc"]
-  peer_private_route_table_ids   = ["rtb-dddddd"]
+  vpc_id                       = "vpc-0abc1234"
+  peer_vpc_id                  = "vpc-0def5678"
+  peer_aws_region              = "us-west-2"
+  auto_accept                  = true
+  vpc_cidr                     = "10.0.0.0/16"
+  peer_vpc_cidr                = "10.1.0.0/16"
+  public_route_table_ids       = ["rtb-0aaa", "rtb-0aab"]
+  private_route_table_ids      = ["rtb-0aac"]
+  peer_public_route_table_ids  = ["rtb-0dda"]
+  peer_private_route_table_ids = ["rtb-0ddb"]
+  env                          = "prod"
 }
 ```
 
 ---
 
-## ✅ Features
+## Input Variables
 
-- ✅ Cross-region peering support
-- ✅ Automatic or manual peering acceptance
-- ✅ Routing for both VPCs (public and private)
-- ✅ Modular and reusable
+- `vpc_id`: The VPC ID of the local (requester) VPC.
+- `peer_vpc_id`: The VPC ID of the peer (accepter) VPC.
+- `peer_aws_region`: The AWS region where the peer VPC resides.
+- `auto_accept`: Whether to automatically accept the peering request (default: `false`).
+- `vpc_cidr`: The CIDR block of the local VPC.
+- `peer_vpc_cidr`: The CIDR block of the peer VPC.
+- `public_route_table_ids`: List of public route table IDs for the local VPC.
+- `private_route_table_ids`: List of private route table IDs for the local VPC.
+- `peer_public_route_table_ids`: List of public route table IDs for the peer VPC.
+- `peer_private_route_table_ids`: List of private route table IDs for the peer VPC.
+- `env`: The environment label to apply to resources (e.g., `dev`, `prod`).
 
 ---
 
-## 📄 License
+## Outputs
 
-This project is licensed under the **Mozilla Public License 2.0** (MPL-2.0).  
-See the [LICENSE](./LICENSE) file for full details.
+- `aws_vpc_peering_connection_id`: The ID of the created VPC peering connection.
+
+---
+
+## Notes
+
+- The CIDR blocks of both VPCs must **not overlap**.
+- Cross-region VPC peering requires additional IAM permission if accounts differ.
+- Ensure route table entries are configured correctly to allow traffic between peered VPCs.
+- This module does not create any security group rules. You must allow traffic using security groups or network ACLs.
+ 

@@ -1,88 +1,46 @@
-# AWS Cost Optimization Module
+ # Cost Optimization Submodule
 
-This Terraform module implements **cost management and optimization strategies** on AWS using:
-
-- **Cost Categories** for Environment tagging
-- **Anomaly Detection** with daily alerts
-- **Monthly Budgets** with customizable thresholds and email notifications
+This Terraform submodule configures AWS cost optimization features to help monitor, control, and manage cloud expenses across environments. It includes AWS Budgets, Cost Categories, and Anomaly Detection. The module is ideal for environments requiring active cost tracking, alerting, and categorization based on usage.
 
 ---
 
-## 📦 Resources Provisioned
+## Features
 
-### 🧮 `aws_ce_cost_category.env_category`
-- Creates a **Cost Category** for billing reports.
-- Groups linked account usage under:
-  - `Production`
-  - `Development`
-
-> Cost categorization helps track and optimize spend across environments.
+- **Cost Categories**: Organizes AWS spend into categories such as `Production` and `Development`, using the current account ID.
+- **Anomaly Detection**: Detects unusual spikes in EC2-related spending with a daily evaluation cycle.
+- **Email Alerts**: Sends cost anomaly and budget threshold notifications to a specified list of email recipients.
+- **Budgets**: Enforces a monthly cost limit and sends alerts at 90% usage.
 
 ---
 
-### 📊 `aws_ce_anomaly_monitor.ec2_monitor`
-- Sets up an anomaly monitor scoped to the **SERVICE** dimension (`EC2` in this case).
-- Detects unusual cost spikes on EC2 services.
+## Usage
 
-### 📧 `aws_ce_anomaly_subscription.email_alert`
-- Sends **daily email alerts** for detected cost anomalies.
-- Threshold for alerting: `$100+` absolute anomaly impact.
-- Supports **multiple subscriber emails**.
-
----
-
-### 💰 `aws_budgets_budget.monthly_budget`
-- Defines a **monthly cost budget** (amount passed as a variable).
-- Filters for:
-  - Service: `Amazon EC2`
-- Triggers alerts when spending reaches **90% of the monthly limit**.
-- Sends email notifications (SNS optional but currently unused).
-- Tags the budget with the current environment name.
-
----
-
-## 🔧 Input Variables
-
-| Name           | Description                                 | Type          | Required |
-|----------------|---------------------------------------------|---------------|----------|
-| `env`          | Environment name (e.g., `dev`, `prod`)      | `string`      | ✅ Yes    |
-| `budget_amount`| Monthly budget amount in USD                | `string`      | ✅ Yes    |
-| `alert_email`  | List of email addresses for alerts          | `list(string)`| ✅ Yes    |
-
----
-
-## 🚀 Example Usage
+Include this module in your Terraform configuration to enable cost monitoring:
 
 ```hcl
 module "cost_optimization" {
   source         = "github.com/kmkouokam/infra-modules//aws/modules/cost_optimization"
   env            = var.env
-  budget_amount  = "500"
-  alert_email    = ["alerts@example.com", "finance@example.com"]
+  budget_amount  = 300
+  alert_email    = ["finops@example.com", "admin@example.com"]
 }
 ```
 
 ---
 
-## ✅ Features
+## Inputs
 
-- ✅ **Cost Categories** for tagging usage by environment
-- ✅ **Anomaly detection** for EC2 costs with threshold-based alerts
-- ✅ **Budgeting with email notifications**
-- ✅ **Daily monitoring and real-time visibility**
-- ✅ Scalable for multiple environments or accounts
+- `env`: (Required) Name of the environment (e.g., `dev`, `prod`). Used for tagging resources and identifying context.
+- `budget_amount`: (Optional) Monthly AWS budget in USD. Defaults to `100`.
+- `alert_email`: (Optional) A list of email addresses to receive alerts for cost anomalies and budget breaches. Defaults to two preset emails.
 
 ---
 
-## 🛠️ Notes
+## Notes
 
-- This module uses your **linked account ID** via `data.aws_caller_identity`.
-- Email subscribers will receive AWS confirmation emails for anomaly alerts.
-- SNS topic ARNs can be integrated later if needed for automation workflows.
+- Anomaly detection is configured for the `EC2` service only. You can extend this to other services as needed.
+- Alerts are sent daily and triggered based on a cost anomaly threshold (set to $100).
+- Budget notifications are triggered at 90% of the defined limit.
+- No SNS topics are attached by default, but you can customize this within the budget configuration if needed.
 
----
-
-## 📄 License
-
-This project is licensed under the **Mozilla Public License 2.0** (MPL-2.0).  
-See the [LICENSE](./LICENSE) file for full details.
+There are no outputs defined for this module. All resources are managed internally for cost optimization purposes.

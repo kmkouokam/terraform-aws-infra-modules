@@ -1,63 +1,66 @@
-# AWS Secrets Manager - Random Password Generator Module
+# Secrets Manager Module
 
-This Terraform module securely generates and stores a **random password** in **AWS Secrets Manager**, encrypted with a KMS key.
+This Terraform submodule provisions an AWS Secrets Manager secret for securely storing sensitive values, such as database credentials. It generates a strong random password, stores it in a structured JSON format, and encrypts it using a provided KMS key.
 
----
-
-## 🔐 What This Module Does
-
-- Generates a **strong, 12-character random password** (letters, numbers, and limited special characters)
-- Creates a **Secrets Manager secret** with a unique timestamp-based name
-- Stores the password in JSON format under the key `password`
-- Encrypts the secret using a specified **KMS key**
-- Optionally retrieves the stored secret version for reference/use in other modules
+> This module is intended to be used as part of the `kmkouokam/infra-modules/aws` repository.
 
 ---
 
-## 📦 Resources Created
+## Features
 
-| Resource                                        | Purpose                                      |
-|------------------------------------------------|----------------------------------------------|
-| `random_password.password`                     | Generates a secure, random password          |
-| `aws_secretsmanager_secret.db_secret`          | Creates the Secrets Manager secret           |
-| `aws_secretsmanager_secret_version.db_secret_version` | Stores the password as a secret version       |
-| `data.aws_secretsmanager_secret_version.retrieved` | Optionally retrieves the stored secret version |
-
----
-
-## 🔧 Input Variables
-
-| Name           | Description                              | Type     | Required |
-|----------------|------------------------------------------|----------|----------|
-| `secret_name`  | Base name for the secret (timestamp will be appended) | `string` | ✅ Yes    |
-| `description`  | Description of the secret                 | `string` | No       |
-| `kms_key_id`   | KMS Key ID used for encryption            | `string` | ✅ Yes    |
-| `env`          | Environment name used in tags             | `string` | ✅ Yes    |
+- Generates a random strong password
+- Creates a versioned secret in AWS Secrets Manager
+- Encrypts the secret with a KMS key
+- Appends a timestamp suffix to the secret name to ensure uniqueness
+- Returns the stored secret version for reference
 
 ---
 
-## 📋 Example Usage
+## Example Usage
 
 ```hcl
-module "secrets" {
-  source       = "github.com/kmkouokam/infra-modules//aws/modules/secrets"
-  secret_name  = var.secret_name
-  description  = "Password for MySQL RDS instance"
-  kms_key_id   = module.kms.secrets_manager_kms_key_id
-  env          = var.env
+module "secrets_manager" {
+  source      = "github.com/kmkouokam/infra-modules//aws/modules/secrets_manager"
+
+  env         = "prod"
+  secret_name = "mysql-password"
+  description = "MySQL database root password"
+  kms_key_id  =  module.kms.secrets_manager_kms_key_id
 }
 ```
 
-## 🛡️ Security Notes
+---
 
-- Password is generated using Terraform’s `random_password` resource.
-- Only safe special characters are used (no risky symbols like quotes or backslashes).
-- Secret is encrypted using customer-managed KMS key.
-- Each secret name includes a timestamp to ensure uniqueness and traceability.
+## Input Variables
+
+- `env`: The environment name (e.g., dev, staging, prod)
+- `secret_name`: The base name of the secret
+- `description`: A short description of the secret's purpose
+- `kms_key_id`: The ARN of the KMS key to use for encryption
 
 ---
 
-## 📄 License
+## Outputs
 
-This project is licensed under the **Mozilla Public License 2.0** (MPL-2.0).  
-See the [LICENSE](./LICENSE) file for details.
+- `secret_name`: The unique ID of the created secret
+- `secret_arn`: The ARN of the created secret
+- `secret_password`: The generated random password (retrieve password from secret)
+- `password`: The generated random password 
+
+
+
+---
+
+## Notes
+
+- The password is stored in the secret as a JSON object: `{ "password": "your-password" }`
+- A timestamp is added to the secret name for traceability and uniqueness
+- You can retrieve the secret later using `aws_secretsmanager_secret_version`
+
+---
+
+## Related Docs
+
+- [Terraform: aws_secretsmanager_secret](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret)
+- [Terraform: random_password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password)
+ 
